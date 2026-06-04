@@ -2,7 +2,7 @@
 
 **Team:** Paneer Package  
 **Author:** Shaurya Jain  
-**Leaderboard R²:** 0.9979
+
 
 ---
 
