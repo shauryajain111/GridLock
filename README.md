@@ -26,6 +26,8 @@ The goal is to predict the **traffic demand** (a normalized value between 0 and 
 To generate the predictions:
 
 ```bash
-pip install -r source_submission/requirements.txt
-python source_submission/predict.py --train dataset/train.csv --test dataset/test.csv --out submission.csv
+pip install -r solution_code/requirements.txt
+python solution_code/traffic_predictor.py --train dataset/train.csv --test dataset/test.csv --out submission.csv
 ```
+
+See [`solution_code/solution_strategy.txt`](solution_code/solution_strategy.txt) for more details.

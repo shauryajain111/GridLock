@@ -1,7 +1,7 @@
 # Sets topics, description, and homepage for Gridlock-Hackathon-2.0 via GitHub API.
 # Requires: $env:GITHUB_TOKEN with repo scope (or gh auth token)
 
-$owner = "ShauryaJain1"
+$owner = "shauryajain111"
 $repo = "Gridlock-Hackathon-2.0"
 $full = "$owner/$repo"
 

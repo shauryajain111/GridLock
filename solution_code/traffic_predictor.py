@@ -1,6 +1,6 @@
 # build submission csv for gridlock demand problem
 # Team: Paneer Package | Author: Shaurya Jain
-# python predict.py --train training.csv --test test.csv --out submission.csv
+# python traffic_predictor.py --train training.csv --test test.csv --out submission.csv
 
 import argparse
 import pandas as pd
