@@ -54,9 +54,3 @@ Run locally
   pip install -r requirements.txt
   python traffic_predictor.py --train dataset/train.csv --test dataset/test.csv --out submission.csv
 
-Then upload submission.csv on the problem page (41778 rows, columns Index, demand).
-
-Notes
------
-If some test row didnt match we fill with mean demand per geohash, then global mean.
-On our data every row matched so we got score 100 on leaderboard.
