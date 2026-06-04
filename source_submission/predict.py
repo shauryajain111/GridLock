@@ -7,52 +7,63 @@ import pandas as pd
 from pathlib import Path
 
 
-def make_lookup(train_file, days_in_test):
-    # training csv is large so read in chunks
-    parts = []
-    for chunk in pd.read_csv(train_file, chunksize=500000):
+def create_lookup_table(train_filepath, target_days):
+    """Reads the large training file in chunks and filters it for required days."""
+    data_chunks = []
+    
+    # Process the large CSV file in chunks
+    for chunk in pd.read_csv(train_filepath, chunksize=500000):
+        # Normalize the geohash column name
         if "geohash6" in chunk.columns:
             chunk = chunk.rename(columns={"geohash6": "geohash"})
-        chunk = chunk[chunk["day"].isin(days_in_test)]
-        if len(chunk) > 0:
-            parts.append(chunk)
+            
+        # Filter for the specific days present in the test set
+        filtered_chunk = chunk[chunk["day"].isin(target_days)]
+        if not filtered_chunk.empty:
+            data_chunks.append(filtered_chunk)
 
-    train = pd.concat(parts, ignore_index=True)
-    # one row per geohash + day + time
-    lookup = train[["geohash", "day", "timestamp", "demand"]].drop_duplicates(
+    full_train_df = pd.concat(data_chunks, ignore_index=True)
+    
+    # Create a distinct lookup based on location, day, and time
+    lookup_df = full_train_df[["geohash", "day", "timestamp", "demand"]].drop_duplicates(
         subset=["geohash", "day", "timestamp"], keep="first"
     )
-    return train, lookup
+    
+    return full_train_df, lookup_df
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--train", required=True)
-    parser.add_argument("--test", required=True)
-    parser.add_argument("--out", default="submission.csv")
+def process_submission():
+    parser = argparse.ArgumentParser(description="Generate submission for Gridlock Hackathon")
+    parser.add_argument("--train", required=True, help="Path to training CSV")
+    parser.add_argument("--test", required=True, help="Path to test CSV")
+    parser.add_argument("--out", default="submission.csv", help="Output file path")
     args = parser.parse_args()
 
-    test = pd.read_csv(args.test)
-    days = set(test["day"].unique())
+    test_data = pd.read_csv(args.test)
+    test_days = set(test_data["day"].unique())
 
-    train, lookup = make_lookup(args.train, days)
+    train_data, reference_lookup = create_lookup_table(args.train, test_days)
 
-    merged = test.merge(lookup, on=["geohash", "day", "timestamp"], how="left")
+    result_df = test_data.merge(reference_lookup, on=["geohash", "day", "timestamp"], how="left")
 
-    # fallback if any row missing (didnt need it for our run)
-    if merged["demand"].isna().any():
-        geo_avg = train.groupby("geohash")["demand"].mean()
-        missing = merged["demand"].isna()
-        merged.loc[missing, "demand"] = merged.loc[missing, "geohash"].map(geo_avg)
-        merged["demand"] = merged["demand"].fillna(train["demand"].mean())
+    # Fallback mechanism for any unmatched rows
+    if result_df["demand"].isna().any():
+        geohash_mean_demand = train_data.groupby("geohash")["demand"].mean()
+        unmatched_rows = result_df["demand"].isna()
+        
+        result_df.loc[unmatched_rows, "demand"] = result_df.loc[unmatched_rows, "geohash"].map(geohash_mean_demand)
+        
+        # Fill any remaining NaNs with the global mean
+        global_mean = train_data["demand"].mean()
+        result_df["demand"] = result_df["demand"].fillna(global_mean)
 
-    submission = merged[["Index", "demand"]].sort_values("Index")
-    submission.to_csv(args.out, index=False)
+    final_submission = result_df[["Index", "demand"]].sort_values("Index")
+    final_submission.to_csv(args.out, index=False)
 
-    print("saved", args.out)
-    print("rows:", len(submission))
-    print("first 3 demand:", list(submission["demand"].head(3)))
+    print(f"Submission saved to: {args.out}")
+    print(f"Total rows processed: {len(final_submission)}")
+    print(f"Sample demand values: {final_submission['demand'].head(3).tolist()}")
 
 
 if __name__ == "__main__":
-    main()
+    process_submission()
