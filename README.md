@@ -18,14 +18,3 @@ Participants were provided with extensive spatiotemporal data, including:
 - Road features and weather conditions
 
 The goal is to predict the **traffic demand** (a normalized value between 0 and 1) for over 41,000 distinct locations and time slots. The accuracy of the predictions is evaluated using the Coefficient of Determination (R² score), meaning precise, robust forecasting is essential to rank highly on the leaderboard.
-
-## Quick Start
-
-To generate the predictions:
-
-```bash
-pip install -r solution_code/requirements.txt
-python solution_code/traffic_predictor.py --train dataset/train.csv --test dataset/test.csv --out submission.csv
-```
-
-See [`solution_code/solution_strategy.txt`](solution_code/solution_strategy.txt) for more details.
