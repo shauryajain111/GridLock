@@ -1,6 +1,6 @@
 # GitHub profile setup (topics, About, pin, social)
 
-Do these once on [github.com/ShauryaJain1/Gridlock-Hackathon-2.0](https://github.com/ShauryaJain1/Gridlock-Hackathon-2.0).
+Do these once on [github.com/ShauryaJain1/Gridlock-Hackathon-2.0](https://github.com/shauryajain111/Gridlock-Hackathon-2.0).
 
 ---
 
@@ -48,7 +48,7 @@ https://www.hackerearth.com/challenges/competitive/gridlock-hackathon-20/
 CLI:
 
 ```powershell
-gh repo edit ShauryaJain1/Gridlock-Hackathon-2.0 `
+gh repo edit shauryajain111/Gridlock-Hackathon-2.0 `
   --description "Perfect-score traffic demand prediction for Flipkart Gridlock Hackathon 2.0 — spatiotemporal lookup (R² = 1.0)." `
   --homepage "https://www.hackerearth.com/challenges/competitive/gridlock-hackathon-20/"
 ```
