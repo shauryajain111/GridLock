@@ -1,0 +1,53 @@
+=======================================================
+Gridlock Hackathon 2.0 — Training Pipeline
+Team: Paneer Package | Author: Shaurya Jain
+=======================================================
+
+[1/4] Loading prepared training data...
+  Shape: (506286, 19)
+  X shape: (506286, 16)  |  y range: [0.0000, 1.0000]
+
+[2/4] Cross-validation...
+
+  Running 5-fold cross-validation...
+  Fold 1  |  R²=0.997812  RMSE=0.014823  MAE=0.009341
+         elapsed: 48.3s
+  Fold 2  |  R²=0.998134  RMSE=0.014021  MAE=0.008876
+         elapsed: 47.1s
+  Fold 3  |  R²=0.997643  RMSE=0.015312  MAE=0.009712
+         elapsed: 49.6s
+  Fold 4  |  R²=0.998301  RMSE=0.013644  MAE=0.008541
+         elapsed: 46.8s
+  Fold 5  |  R²=0.997956  RMSE=0.014712  MAE=0.009187
+         elapsed: 48.9s
+
+  OOF R²  : 0.997969
+  OOF RMSE: 0.014502
+  OOF MAE : 0.009131
+
+  CV R² summary:  mean=0.997969  std=0.000233  min=0.997643  max=0.998301
+
+[3/4] Final model training...
+  Done in 94.2s
+
+  Top 15 feature importances:
+     1. geohash               0.38241  ████████████████████████████████████████████████████████████████████████████████████████████████████████████████
+     2. timestamp             0.19873  ██████████████████████████████████████████████████████████████
+     3. hour                  0.12104  ████████████████████████████████████
+     4. geohash_prefix        0.08932  ██████████████████████████
+     5. day                   0.06211  ██████████████████
+     6. part_of_day           0.04872  ██████████████
+     7. is_peak_hour          0.03104  █████████
+     8. Temperature           0.02341  ███████
+     9. Weather               0.01243  ███
+    10. RoadType              0.00973  ██
+    11. NumberofLanes         0.00812  ██
+    12. lanes_x_peak          0.00634  █
+    13. lanes_x_part          0.00521  █
+    14. LargeVehicles         0.00198  
+    15. Landmarks             0.00141  
+
+[4/4] Saving model...
+  Saved model.pkl  (~16.4 MB in memory)
+
+Done. Final leaderboard R² target: 0.9980

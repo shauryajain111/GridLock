@@ -1,0 +1,137 @@
+Gridlock Hackathon 2.0 — Traffic Demand Prediction
+Team  : Paneer Package
+========================================================
+
+
+PROBLEM OVERVIEW
+----------------
+Flipkart's logistics network operates across hundreds of cities, and traffic
+congestion directly affects delivery SLAs. The Gridlock Hackathon 2.0 asks
+participants to predict normalised traffic demand (a continuous value in [0, 1])
+for ~41,778 road segments, each described by a geographic location, a time slot,
+and a set of road and environmental features.
+
+The primary evaluation metric is R² (coefficient of determination), scaled to
+a 0–100 leaderboard score: score = max(0, 100 * R²).
+
+The training set spans multiple days and contains the following columns:
+  Index, geohash, day, timestamp, demand,
+  RoadType, NumberofLanes, LargeVehicles, Landmarks, Temperature, Weather
+
+The test set has the same columns minus the target (demand).
+
+
+FEATURE ENGINEERING
+-------------------
+All features fed to the model are described below.
+
+1. geohash  [categorical → label-encoded integer]
+   A geohash string encodes a rectangular geographic cell. Different geohash
+   strings correspond to spatially distinct zones with different baseline demand
+   profiles. We label-encode each unique string to an integer so XGBoost can
+   learn zone-level patterns through tree splits.
+
+2. day  [integer, kept as-is]
+   The calendar day index. Demand can vary systematically across days due to
+   weekly cycles, holidays, or special events. Kept as a raw integer.
+
+3. timestamp  [string → integer minutes-since-midnight]
+   Raw timestamps are formatted as "H:MM" (e.g. "6:30", "14:15"). We parse
+   and convert each to total minutes from midnight (hour * 60 + minutes),
+   producing a monotonic integer that captures the within-day demand cycle.
+   This is more informative than treating the string as a category.
+
+4. RoadType  [categorical → label-encoded integer]
+   Type of road (e.g. arterial, highway, local). Road type strongly influences
+   capacity and therefore observed demand. Label-encoded.
+
+5. NumberofLanes  [integer, kept as-is]
+   Number of lanes on the road segment. Higher lane counts correlate with
+   higher capacity and different congestion dynamics.
+
+6. LargeVehicles  [categorical → label-encoded integer]
+   Whether large vehicles are allowed on the segment. Affects effective
+   capacity and congestion patterns. Label-encoded ("Allowed" / "Not Allowed").
+
+7. Landmarks  [categorical → label-encoded integer]
+   Presence of nearby landmarks (Yes / No). Landmark proximity inflates demand
+   during peak hours. Label-encoded.
+
+8. Temperature  [float, median-imputed]
+   Ambient temperature in degrees Celsius. Extreme heat or cold affects
+   commuter behaviour and traffic volumes. Missing values (~15 % of rows)
+   are imputed with the column median computed on the training set and applied
+   consistently at inference time.
+
+9. Weather  [categorical → label-encoded integer]
+   Weather condition (Sunny / Rainy / Snowy / etc.). Weather is a strong
+   demand modulator — rain and snow suppress foot traffic and alter driving
+   patterns. Label-encoded using the training vocabulary; unseen categories
+   at inference time are assigned −1.
+
+No interaction features or polynomial expansions were added; XGBoost's
+gradient-boosted trees capture non-linear interactions and feature crosses
+implicitly through hierarchical splits.
+
+
+MODEL & TRAINING APPROACH
+--------------------------
+Algorithm : XGBoost (XGBRegressor), gradient-boosted decision trees
+Objective : reg:squarederror (mean squared error)
+Tree method: hist (histogram-based, fast on large datasets)
+
+Hyperparameters (final):
+  n_estimators    = 800
+  learning_rate   = 0.05
+  max_depth       = 7
+  subsample       = 0.80   (row sampling per tree)
+  colsample_bytree= 0.80   (feature sampling per tree)
+  min_child_weight= 3      (minimum sum of instance weight in a leaf)
+  reg_alpha       = 0.10   (L1 regularisation)
+  reg_lambda      = 1.00   (L2 regularisation)
+  random_state    = 42
+
+These values were selected by reasoning about dataset size and complexity:
+  - A moderate learning rate (0.05) paired with 800 trees gives sufficient
+    model capacity without overfitting.
+  - Subsampling (0.8 / 0.8) introduces variance reduction akin to bagging.
+  - L1 + L2 regularisation prevents the model from memorising noisy rows.
+
+Validation: 5-fold cross-validation (KFold, shuffle=True, seed=42).
+  Out-of-fold (OOF) predictions are aggregated and scored with sklearn's
+  r2_score to give an unbiased estimate of generalisation performance.
+
+Final model: trained on the complete training set using the same
+hyperparameters and serialised to model.pkl via Python's pickle module.
+
+At inference, predictions are clipped to [0, 1] to respect the physical
+bounds of the demand target before writing the submission CSV.
+
+
+TOOLS & LIBRARIES
+-----------------
+  Python     3.x
+  pandas     — data loading, merging, and CSV I/O
+  numpy      — numerical operations and clipping
+  scikit-learn — LabelEncoder, KFold, r2_score
+  xgboost    — XGBRegressor gradient-boosted tree model
+  pyarrow    — parquet serialisation of the preprocessed training frame
+
+
+SOURCE FILES
+------------
+  preprocess.py   — loads train.csv, engineers all features, fits and saves
+                    LabelEncoders; writes train_prepared.parquet + encoders.pkl
+  train.py        — reads the parquet, runs 5-fold CV, trains the final model,
+                    saves model.pkl
+  predict_xgb.py  — loads model.pkl + encoders.pkl, preprocesses test.csv with
+                    the same pipeline, generates and saves submission.csv
+  requirements.txt — pinned library list for reproducibility
+
+
+HOW TO REPRODUCE
+----------------
+  pip install -r requirements.txt
+  python preprocess.py
+  python train.py
+  python predict_xgb.py --test dataset/test.csv --out submission.csv
