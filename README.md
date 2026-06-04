@@ -1,9 +1,7 @@
 # Gridlock Hackathon 2.0 — Traffic Demand Prediction
 
 **Team:** Paneer Package  
-**Author:** Shaurya Jain  
-**Score:** 100 (R² = 1.0) — Perfect leaderboard score
-
+**Author:** Shaurya Jain  , Ashish Bhardwaj, Vaibhav Gupta, Deb Kalyan
 ---
 
 This repository contains our submission for the [Flipkart Gridlock Hackathon 2.0](https://www.hackerearth.com/challenges/competitive/gridlock-hackathon-20/) hosted on HackerEarth.
